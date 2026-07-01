@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meedee Jewelry · รายละเอียดสินค้า</title>
+  <meta name="description" content="รายละเอียดงานผ่าหวาย Meedee Jewelry">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --mahogany:#220A05;--wine:#550F05;--brick:#761305;--terra:#903306;
+      --burnt:#C45306;--gold:#C8A45C;--oldlace:#F7F1E1;--bone:#E5D8C1;--mute:#6F5C50;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--mahogany);color:var(--oldlace);font-family:'Prompt',system-ui,sans-serif;
+      font-weight:300;-webkit-font-smoothing:antialiased;min-height:100dvh;
+      background-image:radial-gradient(120% 40% at 50% -5%, rgba(196,83,6,0.13), rgba(196,83,6,0) 55%);
+      background-repeat:no-repeat;background-attachment:fixed;}
+    .bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:13px 16px;
+      background:rgba(34,10,5,0.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(118,19,5,0.55);}
+    .back{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;
+      border-radius:50%;border:1px solid rgba(200,164,92,0.45);color:var(--gold);text-decoration:none;font-size:20px;}
+    .back:hover{background:rgba(200,164,92,0.12);}
+    .bar .t{display:flex;flex-direction:column;line-height:1.15;}
+    .bar .en{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:var(--gold);}
+    .bar .th{font-size:17px;color:var(--oldlace);}
+    .wrap{max-width:560px;margin:0 auto;padding:16px 14px 48px;}
+    /* slideshow */
+    .slides{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;
+      scrollbar-width:none;border-radius:12px;}
+    .slides::-webkit-scrollbar{display:none;}
+    .slides img{flex:0 0 100%;width:100%;scroll-snap-align:center;border-radius:12px;
+      background:var(--wine);display:block;}
+    .dots{display:flex;justify-content:center;gap:7px;margin-top:12px;}
+    .dot{width:7px;height:7px;border-radius:50%;background:rgba(200,164,92,0.3);transition:background .2s,transform .2s;}
+    .dot.on{background:var(--gold);transform:scale(1.25);}
+    .swipehint{text-align:center;font-size:12px;color:var(--mute);margin-top:8px;}
+    /* spec */
+    .spec{margin-top:24px;border:1px solid rgba(118,19,5,0.55);border-radius:12px;overflow:hidden;}
+    .spec h2{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.05em;font-size:18px;
+      color:var(--oldlace);padding:14px 16px;background:rgba(85,15,5,0.4);border-bottom:1px solid rgba(118,19,5,0.5);}
+    .row{display:flex;justify-content:space-between;gap:14px;padding:13px 16px;border-bottom:1px solid rgba(118,19,5,0.28);font-size:15px;}
+    .row:last-child{border-bottom:0;}
+    .row .k{color:var(--bone);}
+    .row .v{color:var(--oldlace);text-align:right;}
+    .row .v.empty{color:var(--mute);font-style:italic;font-family:'Cormorant Garamond',serif;}
+    .colornote{margin-top:16px;font-size:13.5px;line-height:1.7;color:var(--bone);text-align:center;}
+    .cta{margin-top:18px;text-align:center;font-size:14px;color:var(--bone);}
+    .cta b{color:var(--gold);font-weight:500;}
+    .err{padding:60px 20px;text-align:center;color:var(--mute);}
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a class="back" id="back" href="index.html" aria-label="กลับ">‹</a>
+    <div class="t"><span class="en" id="ten">Meedee</span><span class="th" id="tth">รายละเอียดสินค้า</span></div>
+  </header>
+  <main class="wrap" id="main"></main>
+
+  <script src="data.js"></script>
+  <script>
+    const q = new URLSearchParams(location.search).get('p') || '';
+    const m = q.match(/^([a-z]+)-(\d+)$/);
+    const main = document.getElementById('main');
+    function fail(){ main.innerHTML = '<div class="err">ไม่พบสินค้าชิ้นนี้<br><br><a class="back" href="index.html" style="display:inline-flex">‹</a></div>'; }
+    if(!m){ fail(); }
+    else {
+      const cat=m[1], n=m[2];
+      const item = ITEMS[cat] && ITEMS[cat][n];
+      const label = LABELS[cat] || cat;
+      const catObj = (typeof CATS!=='undefined') ? CATS.find(c=>c.key===cat) : null;
+      if(!item){ fail(); }
+      else {
+        document.getElementById('tth').textContent = label + ' · แบบที่ ' + n;
+        document.getElementById('ten').textContent = catObj ? catObj.en : 'Meedee';
+        document.getElementById('back').href = 'index.html#'+cat;
+        // slideshow
+        const slides = document.createElement('div'); slides.className='slides'; slides.id='slides';
+        item.photos.forEach((src,i)=>{ const im=document.createElement('img'); im.src=src;
+          im.alt=label+' แบบที่ '+n+' รูปที่ '+(i+1); if(i>0) im.loading='lazy'; slides.appendChild(im); });
+        main.appendChild(slides);
+        if(item.photos.length>1){
+          const dots=document.createElement('div'); dots.className='dots';
+          item.photos.forEach((_,i)=>{const d=document.createElement('span');d.className='dot'+(i?'':' on');dots.appendChild(d);});
+          main.appendChild(dots);
+          const hint=document.createElement('p'); hint.className='swipehint'; hint.textContent='‹ เลื่อนดูรูปเพิ่มเติม ›'; main.appendChild(hint);
+          const ds=dots.children;
+          slides.addEventListener('scroll',()=>{const i=Math.round(slides.scrollLeft/slides.clientWidth);
+            for(let k=0;k<ds.length;k++) ds[k].classList.toggle('on',k===i);},{passive:true});
+        }
+        // spec
+        const spec=document.createElement('div'); spec.className='spec';
+        let rows='<h2>รายละเอียด</h2>';
+        const val=v=> v? '<span class="v">'+v+'</span>' : '<span class="v empty">รออัปเดต</span>';
+        rows+='<div class="row"><span class="k">น้ำหนักทอง</span>'+val(item.gold)+'</div>';
+        rows+='<div class="row"><span class="k">น้ำหนักพลอย</span>'+val(item.stone)+'</div>';
+        if(cat==='bracelet') rows+='<div class="row"><span class="k">ความยาว</span>'+val(item.length)+'</div>';
+        spec.innerHTML=rows; main.appendChild(spec);
+        const cn=document.createElement('p'); cn.className='colornote';
+        cn.textContent='ดีไซน์นี้มีให้เลือกหลายสีพลอย (ดูจากรูปด้านบน)'; main.appendChild(cn);
+        const cta=document.createElement('p'); cta.className='cta';
+        cta.innerHTML='สนใจสีไหนหรืออยากรู้รายละเอียด — <b>DM หาเราได้</b>'; main.appendChild(cta);
+      }
+    }
+  </script>
+</body></html>

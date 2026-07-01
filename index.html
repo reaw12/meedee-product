@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meedee Jewelry · ตัวอย่างสินค้า</title>
+  <meta name="description" content="Meedee Jewelry — ตัวอย่างสินค้างานผ่าหวาย เลือกดูแต่ละชิ้นได้ ถักลวดทองรอบพลอยด้วยมือ">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --mahogany:#220A05;--wine:#550F05;--brick:#761305;--terra:#903306;
+      --burnt:#C45306;--gold:#C8A45C;--oldlace:#F7F1E1;--bone:#E5D8C1;--mute:#6F5C50;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{
+      background:var(--mahogany);color:var(--oldlace);
+      font-family:'Prompt',system-ui,sans-serif;font-weight:300;
+      -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;min-height:100dvh;
+      background-image:
+        radial-gradient(120% 45% at 50% -5%, rgba(196,83,6,0.15), rgba(196,83,6,0) 55%),
+        radial-gradient(90% 35% at 50% 3%, rgba(200,164,92,0.06), rgba(200,164,92,0) 60%);
+      background-repeat:no-repeat;background-attachment:fixed;
+    }
+    .wrap{max-width:560px;margin:0 auto;padding:34px 16px 48px;}
+    /* header */
+    header{text-align:center;margin-bottom:20px;}
+    .brand{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,7vw,34px);color:var(--oldlace);}
+    .brand span{display:inline-block;letter-spacing:.2em;margin-right:-.2em;}
+    .kicker{margin-top:8px;font-size:14px;letter-spacing:.34em;text-indent:.34em;color:var(--gold);}
+    .kicker span{display:inline-block;}
+    .lead{margin-top:16px;font-size:14px;line-height:1.7;color:var(--bone);}
+    .hint{margin-top:6px;font-size:12.5px;color:var(--mute);}
+    /* category section */
+    .cat{margin-top:34px;}
+    .cat-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:10px;
+      border-bottom:1px solid rgba(118,19,5,0.5);}
+    .cat-en{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.16em;
+      text-transform:uppercase;font-size:12px;color:var(--gold);}
+    .cat-th{font-size:20px;font-weight:400;color:var(--oldlace);}
+    /* interactive group image */
+    .board{position:relative;width:100%;border-radius:10px;overflow:hidden;
+      box-shadow:0 8px 26px rgba(0,0,0,0.4);}
+    .board img{width:100%;height:auto;display:block;}
+    .spot{position:absolute;display:block;border:1.5px solid rgba(200,164,92,0.55);
+      border-radius:9px;background:rgba(200,164,92,0.02);
+      transition:border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+      -webkit-tap-highlight-color:transparent;}
+    .spot:hover,.spot:focus-visible,.spot.tapd{
+      border-color:var(--gold);background:rgba(200,164,92,0.14);
+      box-shadow:0 0 14px 2px rgba(200,164,92,0.45), inset 0 0 10px rgba(200,164,92,0.18);outline:none;}
+    .tapnote{margin-top:9px;font-size:12px;color:var(--mute);text-align:center;letter-spacing:.02em;}
+    /* coming soon */
+    .soon{border:1px dashed rgba(118,19,5,0.8);border-radius:10px;padding:30px 16px;text-align:center;
+      background:rgba(85,15,5,0.25);}
+    .soon .s1{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--gold);}
+    .soon .s2{margin-top:6px;font-size:13px;color:var(--mute);}
+    footer{margin-top:40px;text-align:center;font-size:13px;color:var(--mute);line-height:1.7;}
+    footer a{color:var(--gold);text-decoration:none;}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1 class="brand"><span>MEEDEE&nbsp;JEWELRY</span></h1>
+      <p class="kicker"><span>ตัวอย่างสินค้า</span></p>
+      <p class="lead">งานผ่าหวายทุกชิ้นถักด้วยมือ ถักลวดทองรอบพลอยทีละเม็ด<br>เลือกดูแต่ละแบบได้จากด้านล่าง</p>
+      <p class="hint">แตะที่ชิ้นงานเพื่อดูรูปและรายละเอียด</p>
+    </header>
+    <div id="cats"></div>
+    <footer>
+      สนใจหรืออยากรู้รายละเอียดชิ้นไหน — DM หาเราได้<br>
+      <a href="https://catalog.meedeehandcraftjewelry.com">ดูแค็ตตาล็อกทั้งหมด</a>
+    </footer>
+  </main>
+
+  <script src="data.js"></script>
+  <script>
+    const root = document.getElementById('cats');
+    function makeSpots(cat){
+      const h = cat.hot, frag = document.createDocumentFragment();
+      const put = (n, l, t, w, ht) => {
+        const a = document.createElement('a');
+        a.className = 'spot';
+        a.href = 'detail.html?p=' + cat.key + '-' + n;
+        a.style.left = (l*100)+'%'; a.style.top = (t*100)+'%';
+        a.style.width = (w*100)+'%'; a.style.height = (ht*100)+'%';
+        a.setAttribute('aria-label', (LABELS[cat.key]||'') + ' แบบที่ ' + n);
+        // tap feedback before navigating (nice on mobile)
+        a.addEventListener('touchstart', ()=>a.classList.add('tapd'), {passive:true});
+        frag.appendChild(a);
+      };
+      if (h.type === 'grid'){
+        const cw=(h.R-h.L)/h.cols, ch=(h.B-h.T)/h.rows; let n=1;
+        for (let r=0;r<h.rows;r++) for (let c=0;c<h.cols;c++){
+          put(n, h.L+c*cw+h.pad, h.T+r*ch+h.pad, cw-2*h.pad, ch-2*h.pad); n++;
+        }
+      } else if (h.type === 'rows'){
+        for (let i=0;i<h.count;i++){
+          const cy=h.first+i*h.step;
+          put(i+1, h.L, cy-h.hh, h.R-h.L, h.hh*2);
+        }
+      }
+      return frag;
+    }
+    CATS.forEach(cat=>{
+      const sec=document.createElement('section'); sec.className='cat';
+      sec.innerHTML =
+        '<div class="cat-head"><span class="cat-en">'+cat.en+'</span><span class="cat-th">'+cat.th+'</span></div>';
+      if (cat.status==='live'){
+        const board=document.createElement('div'); board.className='board';
+        const img=document.createElement('img'); img.src=cat.group; img.alt=cat.th+' — ตัวอย่างสินค้า Meedee'; img.loading='lazy';
+        board.appendChild(img); board.appendChild(makeSpots(cat));
+        sec.appendChild(board);
+        const note=document.createElement('p'); note.className='tapnote'; note.textContent='แตะที่ชิ้นที่สนใจเพื่อดูรายละเอียด'; sec.appendChild(note);
+      } else {
+        const s=document.createElement('div'); s.className='soon';
+        s.innerHTML='<div class="s1">Coming soon</div><div class="s2">กำลังจัดเตรียม เร็วๆ นี้</div>';
+        sec.appendChild(s);
+      }
+      root.appendChild(sec);
+    });
+  </script>
+</body></html>
