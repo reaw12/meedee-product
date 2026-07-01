@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="th"><head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Meedee Jewelry · รายละเอียดสินค้า</title>
   <meta name="description" content="รายละเอียดงานผ่าหวาย Meedee Jewelry">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -9,99 +9,117 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root{
-      --mahogany:#220A05;--wine:#550F05;--brick:#761305;--terra:#903306;
-      --burnt:#C45306;--gold:#C8A45C;--oldlace:#F7F1E1;--bone:#E5D8C1;--mute:#6F5C50;
+      --mahogany:#220A05;--wine:#550F05;--brick:#761305;--gold:#C8A45C;
+      --oldlace:#F7F1E1;--bone:#E5D8C1;--mute:#9c8574;
     }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--mahogany);color:var(--oldlace);font-family:'Prompt',system-ui,sans-serif;
-      font-weight:300;-webkit-font-smoothing:antialiased;min-height:100dvh;
-      background-image:radial-gradient(120% 40% at 50% -5%, rgba(196,83,6,0.13), rgba(196,83,6,0) 55%);
-      background-repeat:no-repeat;background-attachment:fixed;}
-    .bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:13px 16px;
-      background:rgba(34,10,5,0.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-      border-bottom:1px solid rgba(118,19,5,0.55);}
-    .back{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;
-      border-radius:50%;border:1px solid rgba(200,164,92,0.45);color:var(--gold);text-decoration:none;font-size:20px;}
-    .back:hover{background:rgba(200,164,92,0.12);}
-    .bar .t{display:flex;flex-direction:column;line-height:1.15;}
-    .bar .en{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:var(--gold);}
-    .bar .th{font-size:17px;color:var(--oldlace);}
-    .wrap{max-width:560px;margin:0 auto;padding:16px 14px 48px;}
-    /* slideshow */
-    .slides{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;
-      scrollbar-width:none;border-radius:12px;}
-    .slides::-webkit-scrollbar{display:none;}
-    .slides img{flex:0 0 100%;width:100%;scroll-snap-align:center;border-radius:12px;
-      background:var(--wine);display:block;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;overflow:hidden;}
+    body{background:var(--mahogany);color:var(--oldlace);
+      font-family:'Prompt',system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;}
+    .viewer{position:fixed;inset:0;overflow:hidden;}
+    /* stacked image layers for crossfade */
+    .stage{position:absolute;inset:0;cursor:pointer;}
+    .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+      opacity:0;transition:opacity .55s ease;will-change:opacity;}
+    .stage img.on{opacity:1;}
+    /* top bar */
+    .top{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;
+      justify-content:space-between;padding:calc(env(safe-area-inset-top) + 12px) 14px 26px;
+      background:linear-gradient(180deg, rgba(34,10,5,0.82), rgba(34,10,5,0));pointer-events:none;}
+    .top .l{display:flex;align-items:center;gap:11px;}
+    .back{pointer-events:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;
+      width:40px;height:40px;border-radius:50%;background:rgba(34,10,5,0.55);
+      border:1px solid rgba(200,164,92,0.5);color:var(--gold);text-decoration:none;font-size:21px;
+      -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+    .ttl{display:flex;flex-direction:column;line-height:1.15;}
+    .ttl .en{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.15em;
+      text-transform:uppercase;font-size:10.5px;color:var(--gold);}
+    .ttl .th{font-size:16px;color:var(--oldlace);text-shadow:0 1px 4px rgba(0,0,0,0.6);}
+    .counter{font-size:12px;color:var(--bone);background:rgba(34,10,5,0.5);padding:4px 10px;
+      border-radius:14px;border:1px solid rgba(200,164,92,0.35);}
+    /* tap-to-change ripple hint (brief, on load) */
+    .tapcue{position:absolute;left:50%;top:50%;z-index:4;transform:translate(-50%,-50%);
+      display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;
+      opacity:0;transition:opacity .4s;}
+    .tapcue.show{opacity:1;}
+    .tapcue svg{width:42px;height:42px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));animation:tp 1.2s ease-in-out infinite;}
+    .tapcue span{font-size:12px;color:var(--oldlace);background:rgba(34,10,5,0.8);padding:5px 12px;
+      border-radius:18px;border:1px solid rgba(200,164,92,0.45);}
+    @keyframes tp{0%,100%{transform:translateY(0) scale(1);}45%{transform:translateY(5px) scale(.9);}}
+    /* spec overlay at bottom */
+    .info{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:40px 18px calc(env(safe-area-inset-bottom) + 18px);
+      background:linear-gradient(0deg, rgba(20,6,3,0.94) 0%, rgba(20,6,3,0.72) 55%, rgba(20,6,3,0));pointer-events:none;}
+    .specrow{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 22px;margin-bottom:10px;}
+    .chip{display:flex;flex-direction:column;align-items:center;min-width:78px;}
+    .chip .k{font-size:11px;letter-spacing:.05em;color:var(--gold);}
+    .chip .v{font-size:16px;color:var(--oldlace);margin-top:2px;}
+    .chip .v.empty{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--mute);}
+    .colornote{text-align:center;font-size:12.5px;color:var(--bone);opacity:.9;}
     .dots{display:flex;justify-content:center;gap:7px;margin-top:12px;}
-    .dot{width:7px;height:7px;border-radius:50%;background:rgba(200,164,92,0.3);transition:background .2s,transform .2s;}
-    .dot.on{background:var(--gold);transform:scale(1.25);}
-    .swipehint{text-align:center;font-size:12px;color:var(--mute);margin-top:8px;}
-    /* spec */
-    .spec{margin-top:24px;border:1px solid rgba(118,19,5,0.55);border-radius:12px;overflow:hidden;}
-    .spec h2{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.05em;font-size:18px;
-      color:var(--oldlace);padding:14px 16px;background:rgba(85,15,5,0.4);border-bottom:1px solid rgba(118,19,5,0.5);}
-    .row{display:flex;justify-content:space-between;gap:14px;padding:13px 16px;border-bottom:1px solid rgba(118,19,5,0.28);font-size:15px;}
-    .row:last-child{border-bottom:0;}
-    .row .k{color:var(--bone);}
-    .row .v{color:var(--oldlace);text-align:right;}
-    .row .v.empty{color:var(--mute);font-style:italic;font-family:'Cormorant Garamond',serif;}
-    .colornote{margin-top:16px;font-size:13.5px;line-height:1.7;color:var(--bone);text-align:center;}
-    .cta{margin-top:18px;text-align:center;font-size:14px;color:var(--bone);}
-    .cta b{color:var(--gold);font-weight:500;}
-    .err{padding:60px 20px;text-align:center;color:var(--mute);}
+    .dot{width:7px;height:7px;border-radius:50%;background:rgba(200,164,92,0.3);transition:background .25s,transform .25s;}
+    .dot.on{background:var(--gold);transform:scale(1.3);}
+    .err{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:var(--mute);}
+    .err a{color:var(--gold);}
   </style>
 </head>
 <body>
-  <header class="bar">
-    <a class="back" id="back" href="index.html" aria-label="กลับ">‹</a>
-    <div class="t"><span class="en" id="ten">Meedee</span><span class="th" id="tth">รายละเอียดสินค้า</span></div>
-  </header>
-  <main class="wrap" id="main"></main>
-
+  <div class="viewer" id="viewer"></div>
   <script src="data.js"></script>
   <script>
-    const q = new URLSearchParams(location.search).get('p') || '';
-    const m = q.match(/^([a-z]+)-(\d+)$/);
-    const main = document.getElementById('main');
-    function fail(){ main.innerHTML = '<div class="err">ไม่พบสินค้าชิ้นนี้<br><br><a class="back" href="index.html" style="display:inline-flex">‹</a></div>'; }
-    if(!m){ fail(); }
-    else {
+    const viewer=document.getElementById('viewer');
+    const q=new URLSearchParams(location.search).get('p')||'';
+    const m=q.match(/^([a-z]+)-(\d+)$/);
+    function fail(){viewer.innerHTML='<div class="err">ไม่พบสินค้าชิ้นนี้<a href="index.html">‹ กลับ</a></div>';}
+    if(!m){ fail(); } else {
       const cat=m[1], n=m[2];
-      const item = ITEMS[cat] && ITEMS[cat][n];
-      const label = LABELS[cat] || cat;
-      const catObj = (typeof CATS!=='undefined') ? CATS.find(c=>c.key===cat) : null;
-      if(!item){ fail(); }
-      else {
-        document.getElementById('tth').textContent = label + ' · แบบที่ ' + n;
-        document.getElementById('ten').textContent = catObj ? catObj.en : 'Meedee';
-        document.getElementById('back').href = 'index.html#'+cat;
-        // slideshow
-        const slides = document.createElement('div'); slides.className='slides'; slides.id='slides';
-        item.photos.forEach((src,i)=>{ const im=document.createElement('img'); im.src=src;
-          im.alt=label+' แบบที่ '+n+' รูปที่ '+(i+1); if(i>0) im.loading='lazy'; slides.appendChild(im); });
-        main.appendChild(slides);
-        if(item.photos.length>1){
-          const dots=document.createElement('div'); dots.className='dots';
-          item.photos.forEach((_,i)=>{const d=document.createElement('span');d.className='dot'+(i?'':' on');dots.appendChild(d);});
-          main.appendChild(dots);
-          const hint=document.createElement('p'); hint.className='swipehint'; hint.textContent='‹ เลื่อนดูรูปเพิ่มเติม ›'; main.appendChild(hint);
-          const ds=dots.children;
-          slides.addEventListener('scroll',()=>{const i=Math.round(slides.scrollLeft/slides.clientWidth);
-            for(let k=0;k<ds.length;k++) ds[k].classList.toggle('on',k===i);},{passive:true});
+      const item=ITEMS[cat]&&ITEMS[cat][n];
+      const label=LABELS[cat]||cat;
+      const catObj=(typeof CATS!=='undefined')?CATS.find(c=>c.key===cat):null;
+      if(!item){ fail(); } else {
+        const photos=item.photos, total=photos.length;
+        // stage
+        const stage=document.createElement('div'); stage.className='stage'; stage.id='stage';
+        photos.forEach((src,i)=>{const im=document.createElement('img');im.src=src;
+          im.alt=label+' แบบที่ '+n+' รูปที่ '+(i+1);if(i===0)im.classList.add('on');stage.appendChild(im);});
+        viewer.appendChild(stage);
+        // top bar
+        const top=document.createElement('div'); top.className='top';
+        top.innerHTML='<div class="l"><a class="back" href="index.html#'+cat+'" aria-label="กลับ">‹</a>'+
+          '<div class="ttl"><span class="en">'+(catObj?catObj.en:'Meedee')+'</span>'+
+          '<span class="th">'+label+' · แบบที่ '+n+'</span></div></div>'+
+          (total>1?'<span class="counter" id="counter">1 / '+total+'</span>':'');
+        viewer.appendChild(top);
+        // bottom info
+        const info=document.createElement('div'); info.className='info';
+        const val=v=>v?('<span class="v">'+v+'</span>'):'<span class="v empty">รออัปเดต</span>';
+        let chips='<div class="chip"><span class="k">น้ำหนักทอง</span>'+val(item.gold)+'</div>'+
+                  '<div class="chip"><span class="k">น้ำหนักพลอย</span>'+val(item.stone)+'</div>';
+        if(cat==='bracelet') chips+='<div class="chip"><span class="k">ความยาว</span>'+val(item.length)+'</div>';
+        let dots=''; if(total>1){dots='<div class="dots" id="dots">'+photos.map((_,i)=>'<span class="dot'+(i?'':' on')+'"></span>').join('')+'</div>';}
+        info.innerHTML='<div class="specrow">'+chips+'</div>'+
+          '<div class="colornote">ดีไซน์นี้มีหลายสีให้เลือก — แตะที่รูปเพื่อดูสีอื่น</div>'+dots;
+        viewer.appendChild(info);
+        // tap cue
+        if(total>1){
+          const cue=document.createElement('div'); cue.className='tapcue';
+          cue.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V6.5a1.5 1.5 0 0 1 3 0V11" fill="rgba(34,10,5,0.35)"/><path d="M12 11V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11v-.5a1.5 1.5 0 0 1 3 0V15a5 5 0 0 1-5 5h-1.6a5 5 0 0 1-3.7-1.6L5 15.5a1.6 1.6 0 0 1 2.3-2.2L9 15"/></svg><span>แตะที่รูปเพื่อเปลี่ยนรูป</span>';
+          viewer.appendChild(cue);
+          requestAnimationFrame(()=>cue.classList.add('show'));
+          setTimeout(()=>{cue.classList.remove('show');setTimeout(()=>cue.remove(),400);},2600);
         }
-        // spec
-        const spec=document.createElement('div'); spec.className='spec';
-        let rows='<h2>รายละเอียด</h2>';
-        const val=v=> v? '<span class="v">'+v+'</span>' : '<span class="v empty">รออัปเดต</span>';
-        rows+='<div class="row"><span class="k">น้ำหนักทอง</span>'+val(item.gold)+'</div>';
-        rows+='<div class="row"><span class="k">น้ำหนักพลอย</span>'+val(item.stone)+'</div>';
-        if(cat==='bracelet') rows+='<div class="row"><span class="k">ความยาว</span>'+val(item.length)+'</div>';
-        spec.innerHTML=rows; main.appendChild(spec);
-        const cn=document.createElement('p'); cn.className='colornote';
-        cn.textContent='ดีไซน์นี้มีให้เลือกหลายสีพลอย (ดูจากรูปด้านบน)'; main.appendChild(cn);
-        const cta=document.createElement('p'); cta.className='cta';
-        cta.innerHTML='สนใจสีไหนหรืออยากรู้รายละเอียด — <b>DM หาเราได้</b>'; main.appendChild(cta);
+        // tap to change (crossfade)
+        let cur=0;
+        const imgs=stage.querySelectorAll('img');
+        const counter=document.getElementById('counter');
+        const dotEls=document.getElementById('dots')?document.getElementById('dots').children:null;
+        function go(next){
+          imgs[cur].classList.remove('on');
+          cur=(next+total)%total;
+          imgs[cur].classList.add('on');
+          if(counter) counter.textContent=(cur+1)+' / '+total;
+          if(dotEls) for(let k=0;k<dotEls.length;k++) dotEls[k].classList.toggle('on',k===cur);
+        }
+        if(total>1) stage.addEventListener('click', ()=>go(cur+1));
       }
     }
   </script>

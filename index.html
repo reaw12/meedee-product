@@ -43,14 +43,24 @@
     .board{position:relative;width:100%;border-radius:10px;overflow:hidden;
       box-shadow:0 8px 26px rgba(0,0,0,0.4);}
     .board img{width:100%;height:auto;display:block;}
-    .spot{position:absolute;display:block;border:1.5px solid rgba(200,164,92,0.55);
-      border-radius:9px;background:rgba(200,164,92,0.02);
-      transition:border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
-      -webkit-tap-highlight-color:transparent;}
-    .spot:hover,.spot:focus-visible,.spot.tapd{
-      border-color:var(--gold);background:rgba(200,164,92,0.14);
-      box-shadow:0 0 14px 2px rgba(200,164,92,0.45), inset 0 0 10px rgba(200,164,92,0.18);outline:none;}
+    /* invisible tap zones — the gold outline lives baked into the group image itself */
+    .spot{position:absolute;display:block;background:transparent;border:0;border-radius:10px;
+      -webkit-tap-highlight-color:transparent;cursor:pointer;
+      transition:transform .12s ease;}
+    .spot:active{transform:scale(0.97);}
+    .spot:focus-visible{outline:2px solid rgba(200,164,92,0.7);outline-offset:2px;}
     .tapnote{margin-top:9px;font-size:12px;color:var(--mute);text-align:center;letter-spacing:.02em;}
+    /* finger-tap hint shown on first scroll, anchored over the first product */
+    .fingerhint{position:absolute;z-index:20;display:flex;flex-direction:column;align-items:center;gap:6px;
+      pointer-events:none;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s ease;}
+    .fingerhint.show{opacity:1;}
+    .fingerhint .ficon{width:46px;height:46px;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.6));
+      animation:tap 1.25s ease-in-out infinite;}
+    .fingerhint .flabel{font-size:12.5px;color:var(--oldlace);background:rgba(34,10,5,0.82);
+      padding:5px 11px;border-radius:20px;border:1px solid rgba(200,164,92,0.5);white-space:nowrap;
+      box-shadow:0 3px 10px rgba(0,0,0,0.5);}
+    @keyframes tap{0%,100%{transform:translateY(0) scale(1);}45%{transform:translateY(5px) scale(0.9);}}
+    @media (prefers-reduced-motion:reduce){.fingerhint .ficon{animation:none;}}
     /* coming soon */
     .soon{border:1px dashed rgba(118,19,5,0.8);border-radius:10px;padding:30px 16px;text-align:center;
       background:rgba(85,15,5,0.25);}
@@ -87,8 +97,6 @@
         a.style.left = (l*100)+'%'; a.style.top = (t*100)+'%';
         a.style.width = (w*100)+'%'; a.style.height = (ht*100)+'%';
         a.setAttribute('aria-label', (LABELS[cat.key]||'') + ' แบบที่ ' + n);
-        // tap feedback before navigating (nice on mobile)
-        a.addEventListener('touchstart', ()=>a.classList.add('tapd'), {passive:true});
         frag.appendChild(a);
       };
       if (h.type === 'grid'){
@@ -104,8 +112,13 @@
       }
       return frag;
     }
+    function firstCenter(h){
+      if(h.type==='grid'){const cw=(h.R-h.L)/h.cols, ch=(h.B-h.T)/h.rows; return [h.L+cw/2, h.T+ch/2];}
+      return [h.L+(h.R-h.L)/2, h.first];
+    }
+    let firstLiveBoard=null, firstLiveHot=null;
     CATS.forEach(cat=>{
-      const sec=document.createElement('section'); sec.className='cat';
+      const sec=document.createElement('section'); sec.className='cat'; sec.id=cat.key;
       sec.innerHTML =
         '<div class="cat-head"><span class="cat-en">'+cat.en+'</span><span class="cat-th">'+cat.th+'</span></div>';
       if (cat.status==='live'){
@@ -114,6 +127,7 @@
         board.appendChild(img); board.appendChild(makeSpots(cat));
         sec.appendChild(board);
         const note=document.createElement('p'); note.className='tapnote'; note.textContent='แตะที่ชิ้นที่สนใจเพื่อดูรายละเอียด'; sec.appendChild(note);
+        if(!firstLiveBoard){ firstLiveBoard=board; firstLiveHot=cat.hot; }
       } else {
         const s=document.createElement('div'); s.className='soon';
         s.innerHTML='<div class="s1">Coming soon</div><div class="s2">กำลังจัดเตรียม เร็วๆ นี้</div>';
@@ -121,5 +135,28 @@
       }
       root.appendChild(sec);
     });
+
+    /* finger-tap hint on first scroll, anchored over the first product */
+    if(firstLiveBoard && firstLiveHot){
+      const hint=document.createElement('div'); hint.className='fingerhint';
+      const [cx,cy]=firstCenter(firstLiveHot);
+      hint.style.left=(cx*100)+'%'; hint.style.top=(cy*100)+'%';
+      hint.innerHTML=
+        '<svg class="ficon" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+
+        '<path d="M9 11V6.5a1.5 1.5 0 0 1 3 0V11" fill="rgba(34,10,5,0.35)"/>'+
+        '<path d="M12 11V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11v-.5a1.5 1.5 0 0 1 3 0V15a5 5 0 0 1-5 5h-1.6a5 5 0 0 1-3.7-1.6L5 15.5a1.6 1.6 0 0 1 2.3-2.2L9 15"/>'+
+        '</svg>'+
+        '<span class="flabel">แตะเพื่อดูสินค้า</span>';
+      firstLiveBoard.appendChild(hint);
+      let shown=false, hid=false;
+      const showHint=()=>{ if(shown||hid) return; shown=true; hint.classList.add('show');
+        setTimeout(hideHint, 3600); };
+      const hideHint=()=>{ if(hid) return; hid=true; hint.classList.remove('show');
+        setTimeout(()=>hint.remove(), 500); };
+      window.addEventListener('scroll', showHint, {passive:true, once:false});
+      firstLiveBoard.addEventListener('click', hideHint, {passive:true});
+      // safety: if user never scrolls, still nudge after a few seconds
+      setTimeout(showHint, 2500);
+    }
   </script>
 </body></html>
