@@ -50,17 +50,23 @@
     .spot:active{transform:scale(0.97);}
     .spot:focus-visible{outline:2px solid rgba(200,164,92,0.7);outline-offset:2px;}
     .tapnote{margin-top:9px;font-size:12px;color:var(--mute);text-align:center;letter-spacing:.02em;}
-    /* finger-tap hint shown on first scroll, anchored over the first product */
-    .fingerhint{position:absolute;z-index:20;display:flex;flex-direction:column;align-items:center;gap:6px;
-      pointer-events:none;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s ease;}
-    .fingerhint.show{opacity:1;}
-    .fingerhint .ficon{width:46px;height:46px;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.6));
-      animation:tap 1.25s ease-in-out infinite;}
-    .fingerhint .flabel{font-size:12.5px;color:var(--oldlace);background:rgba(34,10,5,0.82);
-      padding:5px 11px;border-radius:20px;border:1px solid rgba(200,164,92,0.5);white-space:nowrap;
-      box-shadow:0 3px 10px rgba(0,0,0,0.5);}
-    @keyframes tap{0%,100%{transform:translateY(0) scale(1);}45%{transform:translateY(5px) scale(0.9);}}
-    @media (prefers-reduced-motion:reduce){.fingerhint .ficon{animation:none;}}
+    /* info badge (top-right of each group image): shows a pill on scroll-in, then collapses to "i" */
+    .info{position:absolute;top:10px;right:10px;z-index:20;}
+    .info .btn{display:inline-flex;align-items:center;height:32px;padding:0 5px;cursor:pointer;
+      background:rgba(34,10,5,0.86);border:1px solid rgba(200,164,92,0.55);border-radius:17px;
+      color:var(--oldlace);font-size:12.5px;box-shadow:0 3px 10px rgba(0,0,0,0.5);
+      -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);}
+    .info .lab{max-width:0;overflow:hidden;white-space:nowrap;opacity:0;
+      transition:max-width .45s ease, opacity .3s ease, margin .45s ease;}
+    .info.expanded .lab{max-width:150px;opacity:1;margin:0 6px 0 4px;}
+    .info .dot{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;line-height:1;}
+    .info .pop{position:absolute;top:38px;right:0;width:196px;padding:11px 13px;
+      background:rgba(34,10,5,0.94);border:1px solid rgba(200,164,92,0.5);border-radius:11px;
+      font-size:12.5px;line-height:1.65;color:var(--bone);box-shadow:0 8px 18px rgba(0,0,0,0.55);
+      opacity:0;transform:translateY(-5px);pointer-events:none;transition:opacity .25s, transform .25s;}
+    .info.popopen .pop{opacity:1;transform:translateY(0);pointer-events:auto;}
     /* coming soon */
     .soon{border:1px dashed rgba(118,19,5,0.8);border-radius:10px;padding:30px 16px;text-align:center;
       background:rgba(85,15,5,0.25);}
@@ -79,10 +85,7 @@
       <p class="hint">แตะที่ชิ้นงานเพื่อดูรูปและรายละเอียด</p>
     </header>
     <div id="cats"></div>
-    <footer>
-      สนใจหรืออยากรู้รายละเอียดชิ้นไหน — DM หาเราได้<br>
-      <a href="https://catalog.meedeehandcraftjewelry.com">ดูแค็ตตาล็อกทั้งหมด</a>
-    </footer>
+    <footer>สนใจรับชมผลงานทั้งหมด — ติดต่อ LINE OA</footer>
   </main>
 
   <script src="data.js"></script>
@@ -112,11 +115,18 @@
       }
       return frag;
     }
-    function firstCenter(h){
-      if(h.type==='grid'){const cw=(h.R-h.L)/h.cols, ch=(h.B-h.T)/h.rows; return [h.L+cw/2, h.T+ch/2];}
-      return [h.L+(h.R-h.L)/2, h.first];
+    function addInfoBadge(board){
+      const info=document.createElement('div'); info.className='info';
+      info.innerHTML='<div class="btn" role="button" tabindex="0" aria-label="วิธีใช้">'+
+        '<span class="dot">i</span><span class="lab">แตะเพื่อดูสินค้า</span></div>'+
+        '<div class="pop">แตะที่ชิ้นงานเพื่อดูรูปเดี่ยวและรายละเอียด</div>';
+      board.appendChild(info);
+      const btn=info.querySelector('.btn');
+      btn.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation();
+        info.classList.remove('expanded'); info.classList.toggle('popopen'); });
+      document.addEventListener('click', ()=>info.classList.remove('popopen'));
+      return info;
     }
-    let firstLiveBoard=null, firstLiveHot=null;
     CATS.forEach(cat=>{
       const sec=document.createElement('section'); sec.className='cat'; sec.id=cat.key;
       sec.innerHTML =
@@ -125,9 +135,19 @@
         const board=document.createElement('div'); board.className='board';
         const img=document.createElement('img'); img.src=cat.group; img.alt=cat.th+' — ตัวอย่างสินค้า Meedee'; img.loading='lazy';
         board.appendChild(img); board.appendChild(makeSpots(cat));
+        const info=addInfoBadge(board);
         sec.appendChild(board);
         const note=document.createElement('p'); note.className='tapnote'; note.textContent='แตะที่ชิ้นที่สนใจเพื่อดูรายละเอียด'; sec.appendChild(note);
-        if(!firstLiveBoard){ firstLiveBoard=board; firstLiveHot=cat.hot; }
+        // reveal pill briefly when the image scrolls into view, then collapse to "i"
+        let done=false;
+        const io=new IntersectionObserver((ents)=>{
+          ents.forEach(en=>{ if(en.isIntersecting && !done){ done=true;
+            info.classList.add('expanded');
+            setTimeout(()=>info.classList.remove('expanded'), 3200);
+            io.disconnect();
+          }});
+        }, {threshold:0.35});
+        io.observe(board);
       } else {
         const s=document.createElement('div'); s.className='soon';
         s.innerHTML='<div class="s1">Coming soon</div><div class="s2">กำลังจัดเตรียม เร็วๆ นี้</div>';
@@ -135,28 +155,5 @@
       }
       root.appendChild(sec);
     });
-
-    /* finger-tap hint on first scroll, anchored over the first product */
-    if(firstLiveBoard && firstLiveHot){
-      const hint=document.createElement('div'); hint.className='fingerhint';
-      const [cx,cy]=firstCenter(firstLiveHot);
-      hint.style.left=(cx*100)+'%'; hint.style.top=(cy*100)+'%';
-      hint.innerHTML=
-        '<svg class="ficon" viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+
-        '<path d="M9 11V6.5a1.5 1.5 0 0 1 3 0V11" fill="rgba(34,10,5,0.35)"/>'+
-        '<path d="M12 11V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11v-.5a1.5 1.5 0 0 1 3 0V15a5 5 0 0 1-5 5h-1.6a5 5 0 0 1-3.7-1.6L5 15.5a1.6 1.6 0 0 1 2.3-2.2L9 15"/>'+
-        '</svg>'+
-        '<span class="flabel">แตะเพื่อดูสินค้า</span>';
-      firstLiveBoard.appendChild(hint);
-      let shown=false, hid=false;
-      const showHint=()=>{ if(shown||hid) return; shown=true; hint.classList.add('show');
-        setTimeout(hideHint, 3600); };
-      const hideHint=()=>{ if(hid) return; hid=true; hint.classList.remove('show');
-        setTimeout(()=>hint.remove(), 500); };
-      window.addEventListener('scroll', showHint, {passive:true, once:false});
-      firstLiveBoard.addEventListener('click', hideHint, {passive:true});
-      // safety: if user never scrolls, still nudge after a few seconds
-      setTimeout(showHint, 2500);
-    }
   </script>
 </body></html>
