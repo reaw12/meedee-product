@@ -112,6 +112,8 @@
           const cy=h.first+i*h.step;
           put(i+1, h.L, cy-h.hh, h.R-h.L, h.hh*2);
         }
+      } else if (h.type === 'boxes'){
+        h.pts.forEach((p,i)=>{ put(i+1, p[0]-h.hw, p[1]-h.hh, h.hw*2, h.hh*2); });
       }
       return frag;
     }
