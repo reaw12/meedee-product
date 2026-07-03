@@ -28,7 +28,8 @@
     header{text-align:center;margin-bottom:20px;}
     .brand{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(26px,7vw,34px);color:var(--oldlace);}
     .brand span{display:inline-block;letter-spacing:.2em;margin-right:-.2em;}
-    .kicker{margin-top:8px;font-size:14px;letter-spacing:.34em;text-indent:.34em;color:var(--gold);}
+    /* NOTE: no letter-spacing on Thai — it detaches tone marks from consonants */
+    .kicker{margin-top:8px;font-size:15px;letter-spacing:normal;color:var(--gold);}
     .kicker span{display:inline-block;}
     .lead{margin-top:16px;font-size:14px;line-height:1.7;color:var(--bone);}
     .hint{margin-top:6px;font-size:12.5px;color:var(--mute);}
@@ -38,7 +39,7 @@
       border-bottom:1px solid rgba(118,19,5,0.5);}
     .cat-en{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.16em;
       text-transform:uppercase;font-size:12px;color:var(--gold);}
-    .cat-th{font-size:20px;font-weight:400;color:var(--oldlace);}
+    .cat-th{font-size:16px;font-weight:400;color:var(--oldlace);}
     /* interactive group image */
     .board{position:relative;width:100%;border-radius:10px;overflow:hidden;
       box-shadow:0 8px 26px rgba(0,0,0,0.4);}
@@ -73,7 +74,8 @@
     .soon .s1{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--gold);}
     .soon .s2{margin-top:6px;font-size:13px;color:var(--mute);}
     footer{margin-top:40px;text-align:center;font-size:13px;color:var(--mute);line-height:1.7;}
-    footer a{color:var(--gold);text-decoration:none;}
+    footer a{color:var(--gold);font-weight:500;text-decoration:underline;text-underline-offset:3px;
+      text-decoration-color:rgba(200,164,92,0.6);}
   </style>
 </head>
 <body>
@@ -85,10 +87,10 @@
       <p class="hint">แตะที่ชิ้นงานเพื่อดูรูปและรายละเอียด</p>
     </header>
     <div id="cats"></div>
-    <footer>สนใจรับชมผลงานทั้งหมด — ติดต่อ LINE OA</footer>
+    <footer>สนใจรับชมผลงานทั้งหมด<br><a href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener">ติดต่อ LINE OA</a></footer>
   </main>
 
-  <script src="data.js"></script>
+  <script src="data.js?v=3"></script>
   <script>
     const root = document.getElementById('cats');
     function makeSpots(cat){
