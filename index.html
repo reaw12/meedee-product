@@ -76,18 +76,26 @@
     footer{margin-top:40px;text-align:center;font-size:13px;color:var(--mute);line-height:1.7;}
     footer a{color:var(--gold);font-weight:500;text-decoration:underline;text-underline-offset:3px;
       text-decoration-color:rgba(200,164,92,0.6);}
+    /* language switch */
+    .langsw{position:fixed;top:12px;right:12px;z-index:50;display:flex;align-items:center;
+      background:rgba(34,10,5,0.8);border:1px solid rgba(200,164,92,0.5);border-radius:15px;overflow:hidden;
+      -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+    .langsw button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:var(--mute);
+      padding:5px 11px;cursor:pointer;font-family:inherit;font-size:12px;letter-spacing:.04em;}
+    .langsw button.on{background:var(--gold);color:#2a0f06;font-weight:500;}
   </style>
 </head>
 <body>
+  <div class="langsw" id="langsw"><button type="button" data-lang="en">EN</button><button type="button" data-lang="th">TH</button></div>
   <main class="wrap">
     <header>
       <h1 class="brand"><span>MEEDEE&nbsp;JEWELRY</span></h1>
-      <p class="kicker"><span>ตัวอย่างสินค้า</span></p>
-      <p class="lead">งานผ่าหวายทุกชิ้นถักด้วยมือ ถักลวดทองรอบพลอยทีละเม็ด<br>เลือกดูแต่ละแบบได้จากด้านล่าง</p>
-      <p class="hint">แตะที่ชิ้นงานเพื่อดูรูปและรายละเอียด</p>
+      <p class="kicker"><span data-i18n="kicker">ตัวอย่างสินค้า</span></p>
+      <p class="lead" data-i18n="lead">งานผ่าหวายทุกชิ้นถักด้วยมือ ถักลวดทองรอบพลอยทีละเม็ด<br>เลือกดูแต่ละแบบได้จากด้านล่าง</p>
+      <p class="hint" data-i18n="hint">แตะที่ชิ้นงานเพื่อดูรูปและรายละเอียด</p>
     </header>
     <div id="cats"></div>
-    <footer>สนใจรับชมผลงานทั้งหมด<br><a href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener">ติดต่อ LINE OA</a></footer>
+    <footer><span data-i18n="footerLine">สนใจรับชมผลงานทั้งหมด</span><br><a data-i18n="footerLink" href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener">ติดต่อ LINE OA</a></footer>
   </main>
 
   <script src="data.js"></script>
@@ -123,9 +131,9 @@
     }
     function addInfoBadge(board){
       const info=document.createElement('div'); info.className='info';
-      info.innerHTML='<div class="btn" role="button" tabindex="0" aria-label="วิธีใช้">'+
-        '<span class="dot">i</span><span class="lab">แตะเพื่อดูสินค้า</span></div>'+
-        '<div class="pop">แตะที่ชิ้นงานเพื่อดูรูปเดี่ยวและรายละเอียด</div>';
+      info.innerHTML='<div class="btn" role="button" tabindex="0" aria-label="i">'+
+        '<span class="dot">i</span><span class="lab" data-i18n="badgeLab"></span></div>'+
+        '<div class="pop" data-i18n="badgePop"></div>';
       board.appendChild(info);
       const btn=info.querySelector('.btn');
       btn.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation();
@@ -143,7 +151,7 @@
         board.appendChild(img); board.appendChild(makeSpots(cat));
         const info=addInfoBadge(board);
         sec.appendChild(board);
-        const note=document.createElement('p'); note.className='tapnote'; note.textContent='แตะที่ชิ้นที่สนใจเพื่อดูรายละเอียด'; sec.appendChild(note);
+        const note=document.createElement('p'); note.className='tapnote'; note.setAttribute('data-i18n','tapnote'); sec.appendChild(note);
         // reveal pill briefly when the image scrolls into view, then collapse to "i"
         let done=false;
         const io=new IntersectionObserver((ents)=>{
@@ -156,10 +164,26 @@
         io.observe(board);
       } else {
         const s=document.createElement('div'); s.className='soon';
-        s.innerHTML='<div class="s1">Coming soon</div><div class="s2">กำลังจัดเตรียม เร็วๆ นี้</div>';
+        s.innerHTML='<div class="s1">Coming soon</div><div class="s2" data-i18n="soon2"></div>';
         sec.appendChild(s);
       }
       root.appendChild(sec);
     });
+
+    /* ---- language (EN default via browser detect; TH for Thai devices; remembered) ---- */
+    let LANG;
+    function applyLang(l){
+      LANG = (l==='th')?'th':'en';
+      document.documentElement.lang = LANG;
+      document.querySelectorAll('[data-i18n]').forEach(el=>{
+        const v=I18N[LANG][el.getAttribute('data-i18n')]; if(v!=null) el.innerHTML=v;
+      });
+      document.querySelectorAll('#langsw button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-lang')===LANG));
+      try{ localStorage.setItem('meedee_lang', LANG); }catch(e){}
+    }
+    document.querySelectorAll('#langsw button').forEach(b=>
+      b.addEventListener('click', ()=>applyLang(b.getAttribute('data-lang'))));
+    let saved=null; try{ saved=localStorage.getItem('meedee_lang'); }catch(e){}
+    applyLang(saved || ((navigator.language||navigator.userLanguage||'').toLowerCase().indexOf('th')===0 ? 'th' : 'en'));
   </script>
 </body></html>

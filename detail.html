@@ -63,6 +63,13 @@
     .dot.on{background:var(--gold);transform:scale(1.3);}
     .err{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:var(--mute);}
     .err a{color:var(--gold);}
+    /* language switch (in top bar) */
+    .top .r{display:flex;align-items:center;gap:8px;pointer-events:auto;}
+    .langsw{display:flex;align-items:center;background:rgba(34,10,5,0.55);border:1px solid rgba(200,164,92,0.5);
+      border-radius:14px;overflow:hidden;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+    .langsw button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:var(--bone);
+      padding:4px 9px;cursor:pointer;font-family:inherit;font-size:11.5px;letter-spacing:.04em;}
+    .langsw button.on{background:var(--gold);color:#2a0f06;font-weight:500;}
   </style>
 </head>
 <body>
@@ -70,9 +77,12 @@
   <script src="data.js"></script>
   <script>
     const viewer=document.getElementById('viewer');
+    let LANG, _s=null; try{_s=localStorage.getItem('meedee_lang');}catch(e){}
+    LANG = _s || ((navigator.language||navigator.userLanguage||'').toLowerCase().indexOf('th')===0?'th':'en');
+    const T=k=>I18N[LANG][k];
     const q=new URLSearchParams(location.search).get('p')||'';
     const m=q.match(/^([a-z]+)-(\d+)$/);
-    function fail(){viewer.innerHTML='<div class="err">ไม่พบสินค้าชิ้นนี้<a href="index.html">‹ กลับ</a></div>';}
+    function fail(){viewer.innerHTML='<div class="err"><span>'+T('notFound')+'</span><a href="index.html">‹ '+T('back')+'</a></div>';}
     if(!m){ fail(); } else {
       const cat=m[1], n=m[2];
       const item=ITEMS[cat]&&ITEMS[cat][n];
@@ -83,29 +93,30 @@
         // stage
         const stage=document.createElement('div'); stage.className='stage'; stage.id='stage';
         photos.forEach((src,i)=>{const im=document.createElement('img');im.src=src;
-          im.alt=label+' แบบที่ '+n+' รูปที่ '+(i+1);if(i===0)im.classList.add('on');stage.appendChild(im);});
+          im.alt=(catObj?catObj.en:'Meedee')+' '+n+' ('+(i+1)+')';if(i===0)im.classList.add('on');stage.appendChild(im);});
         viewer.appendChild(stage);
         // top bar
         const top=document.createElement('div'); top.className='top';
-        top.innerHTML='<div class="l"><a class="back" href="index.html#'+cat+'" aria-label="กลับ">‹</a>'+
+        top.innerHTML='<div class="l"><a class="back" href="index.html#'+cat+'" aria-label="'+T('back')+'">‹</a>'+
           '<div class="ttl"><span class="en">'+(catObj?catObj.en:'Meedee')+'</span>'+
-          '<span class="th">'+label+' · แบบที่ '+n+'</span></div></div>'+
-          (total>1?'<span class="counter" id="counter">1 / '+total+'</span>':'');
+          '<span class="th" id="dnum" data-n="'+n+'"></span></div></div>'+
+          '<div class="r"><div class="langsw" id="langsw"><button type="button" data-lang="en">EN</button><button type="button" data-lang="th">TH</button></div>'+
+          (total>1?'<span class="counter" id="counter">1 / '+total+'</span>':'')+'</div>';
         viewer.appendChild(top);
         // bottom info
         const info=document.createElement('div'); info.className='info';
-        const val=v=>v?('<span class="v">'+v+'</span>'):'<span class="v empty">รออัปเดต</span>';
-        let chips='<div class="chip"><span class="k">น้ำหนักทอง</span>'+val(item.gold)+'</div>'+
-                  '<div class="chip"><span class="k">น้ำหนักพลอย</span>'+val(item.stone)+'</div>';
-        if(cat==='bracelet') chips+='<div class="chip"><span class="k">ความยาว</span>'+val(item.length)+'</div>';
+        const val=v=>v?('<span class="v">'+v+'</span>'):'<span class="v empty" data-i18n="emptyVal"></span>';
+        let chips='<div class="chip"><span class="k" data-i18n="specGold"></span>'+val(item.gold)+'</div>'+
+                  '<div class="chip"><span class="k" data-i18n="specStone"></span>'+val(item.stone)+'</div>';
+        if(cat==='bracelet') chips+='<div class="chip"><span class="k" data-i18n="specLength"></span><span class="v" id="lenval" data-raw="'+item.length+'"></span></div>';
         let dots=''; if(total>1){dots='<div class="dots" id="dots">'+photos.map((_,i)=>'<span class="dot'+(i?'':' on')+'"></span>').join('')+'</div>';}
         info.innerHTML='<div class="specrow">'+chips+'</div>'+
-          '<div class="colornote">สนใจรับชมผลงานทั้งหมด — <a href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener">ติดต่อ LINE OA</a></div>'+dots;
+          '<div class="colornote"><span data-i18n="ctaLine"></span> <a data-i18n="ctaLink" href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener"></a></div>'+dots;
         viewer.appendChild(info);
         // tap cue — show only the very first time the customer ever opens a detail page
         if(total>1 && !localStorage.getItem('meedee_pd_tapcue')){
           const cue=document.createElement('div'); cue.className='tapcue';
-          cue.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V6.5a1.5 1.5 0 0 1 3 0V11" fill="rgba(34,10,5,0.35)"/><path d="M12 11V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11v-.5a1.5 1.5 0 0 1 3 0V15a5 5 0 0 1-5 5h-1.6a5 5 0 0 1-3.7-1.6L5 15.5a1.6 1.6 0 0 1 2.3-2.2L9 15"/></svg><span>แตะที่รูปเพื่อเปลี่ยนรูป</span>';
+          cue.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#C8A45C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V6.5a1.5 1.5 0 0 1 3 0V11" fill="rgba(34,10,5,0.35)"/><path d="M12 11V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11v-.5a1.5 1.5 0 0 1 3 0V15a5 5 0 0 1-5 5h-1.6a5 5 0 0 1-3.7-1.6L5 15.5a1.6 1.6 0 0 1 2.3-2.2L9 15"/></svg><span data-i18n="tapChange"></span>';
           viewer.appendChild(cue);
           requestAnimationFrame(()=>cue.classList.add('show'));
           setTimeout(()=>{cue.classList.remove('show');setTimeout(()=>cue.remove(),400);},2600);
@@ -124,6 +135,19 @@
           if(dotEls) for(let k=0;k<dotEls.length;k++) dotEls[k].classList.toggle('on',k===cur);
         }
         if(total>1) stage.addEventListener('click', ()=>go(cur+1));
+        // language apply + toggle
+        function applyLang(l){
+          LANG=(l==='th')?'th':'en'; document.documentElement.lang=LANG;
+          document.querySelectorAll('[data-i18n]').forEach(el=>{const v=I18N[LANG][el.getAttribute('data-i18n')]; if(v!=null) el.innerHTML=v;});
+          const dn=document.getElementById('dnum'); if(dn) dn.textContent=I18N[LANG].numPrefix+dn.dataset.n;
+          const lv=document.getElementById('lenval'); if(lv) lv.textContent=lv.dataset.raw+I18N[LANG].lengthUnit;
+          const bk=document.querySelector('.back'); if(bk) bk.setAttribute('aria-label',I18N[LANG].back);
+          document.querySelectorAll('#langsw button').forEach(b=>b.classList.toggle('on',b.getAttribute('data-lang')===LANG));
+          try{localStorage.setItem('meedee_lang',LANG);}catch(e){}
+        }
+        document.querySelectorAll('#langsw button').forEach(b=>
+          b.addEventListener('click', e=>{ e.stopPropagation(); applyLang(b.getAttribute('data-lang')); }));
+        applyLang(LANG);
       }
     }
   </script>
