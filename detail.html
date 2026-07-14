@@ -70,6 +70,13 @@
     .langsw button{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:var(--bone);
       padding:4px 9px;cursor:pointer;font-family:inherit;font-size:11.5px;letter-spacing:.04em;}
     .langsw button.on{background:var(--gold);color:#2a0f06;font-weight:500;}
+    /* social icons */
+    .social{display:flex;justify-content:center;gap:15px;margin-top:12px;}
+    .social a{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;
+      border-radius:50%;border:1px solid rgba(200,164,92,0.5);color:var(--gold);pointer-events:auto;
+      transition:background .2s,transform .12s;}
+    .social a:active{transform:scale(0.94);}
+    .social svg{width:21px;height:21px;display:block;}
   </style>
 </head>
 <body>
@@ -111,7 +118,11 @@
         if(cat==='bracelet') chips+='<div class="chip"><span class="k" data-i18n="specLength"></span><span class="v" id="lenval" data-raw="'+item.length+'"></span></div>';
         let dots=''; if(total>1){dots='<div class="dots" id="dots">'+photos.map((_,i)=>'<span class="dot'+(i?'':' on')+'"></span>').join('')+'</div>';}
         info.innerHTML='<div class="specrow">'+chips+'</div>'+
-          '<div class="colornote"><span data-i18n="ctaLine"></span> <a data-i18n="ctaLink" href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener"></a></div>'+dots;
+          '<div class="colornote"><span data-i18n="footerLine"></span></div>'+
+          '<div class="social">'+
+            '<a href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 10.2c0-3.7-3.6-6.7-8-6.7s-8 3-8 6.7c0 3.3 2.9 6.1 6.8 6.6.9.2.8.5.6 1.6-.1.4-.4 1.5.9.9 1.4-.6 5-3.4 6.5-5.9.8-1.2 1.2-2.3 1.2-3.2Z"/><path d="M8 9.4v2.7M8 12.1h1.5M11 9.4v2.7M16 9.4h-1.5v2.7H16M14.5 10.7h1.1M12.9 9.4l1.1 2.7" stroke-width="1"/></svg></a>'+
+            '<a href="https://www.instagram.com/meedee_jewelry?igsh=eDd2OXl6NThhY2hw&utm_source=qr" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="3.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>'+
+          '</div>'+dots;
         viewer.appendChild(info);
         // tap cue — show only the very first time the customer ever opens a detail page
         if(total>1 && !localStorage.getItem('meedee_pd_tapcue')){
@@ -139,7 +150,7 @@
         function applyLang(l){
           LANG=(l==='th')?'th':'en'; document.documentElement.lang=LANG;
           document.querySelectorAll('[data-i18n]').forEach(el=>{const v=I18N[LANG][el.getAttribute('data-i18n')]; if(v!=null) el.innerHTML=v;});
-          const dn=document.getElementById('dnum'); if(dn) dn.textContent=I18N[LANG].numPrefix+dn.dataset.n;
+          const dn=document.getElementById('dnum'); if(dn) dn.textContent=(LANG==='th'?(LABELS[cat]+' · '):'')+I18N[LANG].numPrefix+dn.dataset.n;
           const lv=document.getElementById('lenval'); if(lv) lv.textContent=lv.dataset.raw+I18N[LANG].lengthUnit;
           const bk=document.querySelector('.back'); if(bk) bk.setAttribute('aria-label',I18N[LANG].back);
           document.querySelectorAll('#langsw button').forEach(b=>b.classList.toggle('on',b.getAttribute('data-lang')===LANG));
