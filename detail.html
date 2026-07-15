@@ -77,6 +77,17 @@
       transition:background .2s,transform .12s;}
     .social a:active{transform:scale(0.94);}
     .social svg{width:21px;height:21px;display:block;}
+    /* collapsible weight details (keeps hero image clear by default) */
+    .details{max-height:0;overflow:hidden;opacity:0;
+      transition:max-height .35s ease, opacity .3s ease, margin .35s ease;}
+    .details.open{max-height:170px;opacity:1;margin-bottom:10px;}
+    .dtagline{text-align:center;font-size:12.5px;color:var(--bone);opacity:.9;margin-top:8px;}
+    .dtoggle{display:flex;align-items:center;gap:6px;margin:0 auto 10px;pointer-events:auto;cursor:pointer;
+      background:rgba(34,10,5,0.5);border:1px solid rgba(200,164,92,0.5);color:var(--gold);
+      border-radius:16px;padding:5px 14px;font-family:inherit;font-size:12px;
+      -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+    .dtoggle .chev{font-size:9px;line-height:1;transition:transform .3s;}
+    .dtoggle.open .chev{transform:rotate(180deg);}
   </style>
 </head>
 <body>
@@ -117,8 +128,9 @@
                   '<div class="chip"><span class="k" data-i18n="specStone"></span>'+val(item.stone)+'</div>';
         if(cat==='bracelet') chips+='<div class="chip"><span class="k" data-i18n="specLength"></span><span class="v" id="lenval" data-raw="'+item.length+'"></span></div>';
         let dots=''; if(total>1){dots='<div class="dots" id="dots">'+photos.map((_,i)=>'<span class="dot'+(i?'':' on')+'"></span>').join('')+'</div>';}
-        info.innerHTML='<div class="specrow">'+chips+'</div>'+
-          '<div class="colornote"><span data-i18n="footerLine"></span></div>'+
+        info.innerHTML='<div class="details" id="details"><div class="specrow">'+chips+'</div>'+
+            '<div class="dtagline"><span data-i18n="footerLine"></span></div></div>'+
+          '<button class="dtoggle" id="dtoggle" type="button"><span data-i18n="viewDetails"></span><span class="chev">&#9662;</span></button>'+
           '<div class="social">'+
             '<a href="https://lin.ee/wcgxSgl" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 10.2c0-3.7-3.6-6.7-8-6.7s-8 3-8 6.7c0 3.3 2.9 6.1 6.8 6.6.9.2.8.5.6 1.6-.1.4-.4 1.5.9.9 1.4-.6 5-3.4 6.5-5.9.8-1.2 1.2-2.3 1.2-3.2Z"/><path d="M8 9.4v2.7M8 12.1h1.5M11 9.4v2.7M16 9.4h-1.5v2.7H16M14.5 10.7h1.1M12.9 9.4l1.1 2.7" stroke-width="1"/></svg></a>'+
             '<a href="https://www.instagram.com/meedee_jewelry?igsh=eDd2OXl6NThhY2hw&utm_source=qr" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="3.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>'+
@@ -147,6 +159,9 @@
           if(dotEls) for(let k=0;k<dotEls.length;k++) dotEls[k].classList.toggle('on',k===cur);
         }
         if(total>1) stage.addEventListener('click', ()=>go(cur+1));
+        // collapsible weight panel (tap to reveal)
+        const dtg=document.getElementById('dtoggle'), dtl=document.getElementById('details');
+        if(dtg&&dtl) dtg.addEventListener('click', e=>{ e.stopPropagation(); dtg.classList.toggle('open'); dtl.classList.toggle('open'); });
         // language apply + toggle
         function applyLang(l){
           LANG=(l==='th')?'th':'en'; document.documentElement.lang=LANG;
